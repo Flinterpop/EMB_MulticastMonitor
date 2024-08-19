@@ -140,7 +140,12 @@
     </PropertyGroup>
     <PropertyGroup Condition="'$(Cfg_2_Win64)'!=''">
         <AppDPIAwarenessMode>PerMonitorV2</AppDPIAwarenessMode>
-        <LinkPackageImports>rtl.bpi;vcl.bpi;IndySystem.bpi;IndyCore.bpi</LinkPackageImports>
+        <VerInfo_IncludeVerInfo>true</VerInfo_IncludeVerInfo>
+        <VerInfo_Locale>1033</VerInfo_Locale>
+        <UsePackages>false</UsePackages>
+        <LinkPackageStatics>rtl.lib;vcl.lib;IndySystem.lib;IndyCore.lib</LinkPackageStatics>
+        <BCC_PCHUsage>None</BCC_PCHUsage>
+        <DynamicRTL>false</DynamicRTL>
     </PropertyGroup>
     <ItemGroup>
         <CppCompile Include="EMB_UDPMonitor.cpp">
@@ -183,6 +188,10 @@
                 <Source>
                     <Source Name="MainSource">EMB_UDPMonitor.cpp</Source>
                 </Source>
+                <Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcboffice2k280.bpl">Embarcadero C++Builder Office 2000 Servers Package</Excluded_Packages>
+                    <Excluded_Packages Name="$(BDSBIN)\bcbofficexp280.bpl">Embarcadero C++Builder Office XP Servers Package</Excluded_Packages>
+                </Excluded_Packages>
             </CPlusPlusBuilder.Personality>
             <Deployment Version="4">
                 <DeployFile Condition="'$(DynamicRTL)'=='true'" LocalName="$(BDS)\Redist\osx32\libcgcrtl.dylib" Class="DependencyModule">

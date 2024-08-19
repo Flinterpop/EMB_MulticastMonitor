@@ -2,7 +2,7 @@ object UDPMon: TUDPMon
   Left = 0
   Top = 0
   Caption = 'UDP Stream Monitor - 15 Aug 2024'
-  ClientHeight = 314
+  ClientHeight = 322
   ClientWidth = 461
   Color = clBtnFace
   Font.Charset = DEFAULT_CHARSET
