@@ -1,3 +1,4 @@
+
 //---------------------------------------------------------------------------
 
 #include <vcl.h>
@@ -12,8 +13,7 @@
 #pragma resource "*.dfm"
 TForm9 *Form9;
 //---------------------------------------------------------------------------
-__fastcall TForm9::TForm9(TComponent* Owner)
-	: TForm(Owner)
+__fastcall TForm9::TForm9(TComponent* Owner) : TForm(Owner)
 {
 	Caption = "Multicast Port Monitor - " + String(__DATE__) + " at " + String(__TIME__) + String();
 	pPortStatsList.reserve(20);
@@ -58,104 +58,66 @@ void  TForm9::pme(String s)
 char buf[300];
 void __fastcall TForm9::IdIPMCastClient1IPMCastRead(TObject *Sender, const TIdBytes AData, TIdSocketHandle *ABinding)
 {
-
-	for (auto a : pPortStatsList)
-	{
-		if (a->port == ABinding->Port) {
-			a->count++;
-            a->timeSinceLast=0;
-		}
-	}
-
-	//ShowStats();
-
 	if (CB_Debug->Checked) {
 		pme("Rx Multicast==============================================================================================");
 		pme("Rx packet size: %d",AData.size());
 		MemoDebug->Lines->Add("On Port:" + IntToStr(ABinding->Port));
-		//pme("On IP:Port %s: %d",rxIP.c_str(), rxPort); //IdIPMCastClient1->DefaultPort);
 	}
 
-}
 
-
-void __fastcall TForm9::ShowStats()
-{
-
-	TM_Summary->Lines->Clear();
-
-	TM_Summary->Lines->Add("Port   Count Rx  TSL");
-    TM_Summary->Lines->Add("--------------------");
-
-	for (auto a : pPortStatsList)
+	int bindPort =  ABinding->Port;
+	for (int i = 1; i < SG_StreamList->RowCount; i++)
 	{
-		if (a->count ==0)
-			sprintf(buf,"%d %7d",a->port, a->count);
-		else
-			sprintf(buf,"%d %7d %5d",a->port, a->count, a->timeSinceLast);
-		if (a->count==0) 			TM_Summary->SelAttributes->Color = clSilver;
-		else
-		{
-			if (a->timeSinceLast<1) TM_Summary->SelAttributes->Color = clGreen;
-			else TM_Summary->SelAttributes->Color = clBlack;
+		int p = StrToInt(SG_StreamList->Cells[0][i]);
+		if (p==bindPort) {
+			int  a = StrToInt(SG_StreamList->Cells[2][i]);
+			SG_StreamList->Cells[2][i]= IntToStr(a+1);
+			SG_StreamList->Cells[3][i]= "0"; //			timeSinceLast=0;
+            return;
 		}
-
-		TM_Summary->Lines->Add(buf);
-
 	}
-
-
-
 }
 
-void  TForm9::GetPortsToMonitor()
-{
-	pPortStatsList.clear();
-	for (int i=0; i < TM_PortList->Lines->Count; i++) {
-		String W = TM_PortList->Lines->Strings[i];
-
-		try
-		{
-			pPR pr = new PacketRecord;
-			pr->port = StrToInt(W);
-			pr->count = 0;
-			pPortStatsList.push_back(pr);
-		}
-		catch (Exception *e){}
-    }
-}
 
 //---------------------------------------------------------------------------
 void __fastcall TForm9::BN_ListenClick(TObject *Sender)
 {
-	if (b_Listening) {
+	if (b_Listening)
+	{
 		b_Listening = false;
 		BN_Listen->Caption = "Start";
-		for (auto a : pPortStatsList) a->ClientSocket->Active=false;
+		for (auto a : socketList) a->Active=false;
 	}
 	else
 	{
 		b_Listening = true;
 		BN_Listen->Caption = "Stop";
 
-		GetPortsToMonitor();
-
-		for (auto a : pPortStatsList)
-		{
-			a->ClientSocket = new TIdIPMCastClient();
-			a->ClientSocket->OnIPMCastRead = &IdIPMCastClient1IPMCastRead;
-			a->ClientSocket->ReuseSocket = rsTrue;
-			a->ClientSocket->DefaultPort = a->port;
-			a->ClientSocket->MulticastGroup = TE_MCastGroup->Text;
-			a->ClientSocket->Active=true;
+		socketList.clear();
+		int n = SG_StreamList->RowCount;
+		for (int i = 1; i < n; i++) {
+			int p = StrToInt(SG_StreamList->Cells[0][i]);
+			String IP = SG_StreamList->Cells[1][i];
+			pme("Adding %d on %s",p,IP.c_str()	);
+            pme(IP);
+			TIdIPMCastClient *mcs = new TIdIPMCastClient();
+			mcs->OnIPMCastRead = &IdIPMCastClient1IPMCastRead;
+			mcs->ReuseSocket = rsTrue;
+			mcs->DefaultPort = p;
+			mcs->MulticastGroup = IP;
+			mcs->Active=true;
+			socketList.push_back(mcs);
 		}
 	}
 }
 //---------------------------------------------------------------------------
+
+
+
 void __fastcall TForm9::BN_QuitClick(TObject *Sender)
 {
 	for (auto a : pPortStatsList) a->ClientSocket->Active=false;
-    WriteIniFile();
+    //WriteIniFile();
 	Close();
 }
 
@@ -164,16 +126,38 @@ void __fastcall TForm9::ReadIniFile()
 {
 	if (FileExists(iniFile))
 	{
-		pme("Ini file found");
 		TIniFile *ini = new TIniFile(iniFile);
 
-		TM_PortList->Lines->Clear();
 		int numPorts = ini->ReadInteger( "Form", "NumPorts", 0);
+
+		SG_StreamList->RowCount = numPorts+1;
+		pme("Ini file found with %d ports to monitor",numPorts);
+
+		SG_StreamList->Cells[0][0]= L"Port";
+		SG_StreamList->Cells[1][0]= L"IP";
+		SG_StreamList->Cells[2][0]= L"Count Rx";
+		SG_StreamList->Cells[3][0]= L"TSL";
+		SG_StreamList->Cells[4][0]= L"Protocol";
+
+
 		for (int i=1;i<=numPorts;i++) {
 			char portnum[10];
 			sprintf(portnum,"Port%02d",i);
 			int port = ini->ReadInteger( "Form", portnum, 0);
-			TM_PortList->Lines->Append(IntToStr(port));
+
+			char protocol[20];
+			sprintf(protocol,"Protocol%02d",i);
+			auto s = ini->ReadString( "Form", protocol, "--");
+
+			char IP[20];
+			sprintf(IP,"IP%02d",i);
+			auto I = ini->ReadString( "Form", IP, "192.168.1.255");
+
+			SG_StreamList->Cells[0][i]= IntToStr(port);
+			SG_StreamList->Cells[1][i]= I;
+			SG_StreamList->Cells[2][i]= L"0";
+			SG_StreamList->Cells[3][i]= L"0";
+			SG_StreamList->Cells[4][i]= s;
 		}
 
 		int width = ini->ReadInteger( "Form", "width", 780);
@@ -192,6 +176,7 @@ void __fastcall TForm9::WriteIniFile()
 
 	TIniFile *ini = new TIniFile(iniFile);
 
+	/*
 	int i;
 	for (i=0; i < TM_PortList->Lines->Count; i++)
 	{
@@ -200,6 +185,7 @@ void __fastcall TForm9::WriteIniFile()
 		char portnum[10];
 		sprintf(portnum,"Port%02d",i+1);
 		ini->WriteString ( "Form", portnum, W);
+
 	}
 	ini->WriteString ( "Form", "NumPorts", i);
 
@@ -207,6 +193,7 @@ void __fastcall TForm9::WriteIniFile()
 	int height = Form9->Height;
 	ini->WriteString ( "Form", "Width", width);
 	ini->WriteString ( "Form", "Height", height);
+    */
 }
 
 
@@ -215,11 +202,11 @@ void __fastcall TForm9::WriteIniFile()
 int frameCounter=0;
 void __fastcall TForm9::Timer1Timer(TObject *Sender)
 {
-	ShowStats();
-
-	if (0==(++frameCounter%4)) {
-		for (auto a : pPortStatsList)
-			 if (a->count !=0) a->timeSinceLast++;
+	for (int i = 1; i < SG_StreamList->RowCount; i++)
+	{
+		int  tsl = StrToInt(SG_StreamList->Cells[3][i]);
+		SG_StreamList->Cells[3][i] = IntToStr(tsl+1);
 	}
+
 }
 

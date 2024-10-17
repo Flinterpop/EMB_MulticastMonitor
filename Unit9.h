@@ -15,6 +15,7 @@
 #include <IdSocketHandle.hpp>
 #include <Vcl.ExtCtrls.hpp>
 #include <Vcl.ComCtrls.hpp>
+#include <Vcl.Grids.hpp>
 #include <vector>
 
 
@@ -28,40 +29,42 @@ __published:	// IDE-managed Components
 	TButton *BN_Quit;
 	TGroupBox *GroupBox1;
 	TEdit *TE_MCastGroup;
-	TGroupBox *GroupBox2;
-	TMemo *TM_PortList;
 	TTimer *Timer1;
-	TRichEdit *TM_Summary;
-	void __fastcall IdIPMCastClient1IPMCastRead(TObject *Sender, const TIdBytes AData,
-          TIdSocketHandle *ABinding);
+	TButton *BN_AddPort;
+	TStringGrid *SG_StreamList;
+	void __fastcall IdIPMCastClient1IPMCastRead(TObject *Sender, const TIdBytes AData, TIdSocketHandle *ABinding);
 	void __fastcall BN_ListenClick(TObject *Sender);
 	void __fastcall BN_QuitClick(TObject *Sender);
 	void __fastcall Timer1Timer(TObject *Sender);
+
 private:	// User declarations
 public:		// User declarations
 	__fastcall TForm9(TComponent* Owner);
 
 	void  pme(const char* fmt, ...);
     void  pme(String s);
-	void  GetPortsToMonitor();
 	void __fastcall ReadIniFile();
 	void __fastcall WriteIniFile();
-	void __fastcall ShowStats();
 
 	char iniFile[80] = ".\\MulticastMonitor.ini";
 	bool b_Listening=false;
 
 
-	typedef struct _PacketRecord
+	typedef struct _PortMonitorRecord
 	{
-		int port;
-		int count;
-        int timeSinceLast;
+		int port = 0;
+		int count = 0;
+		int timeSinceLast =0;
 		char *IP[20];
 		TIdIPMCastClient *ClientSocket;
-	} PacketRecord, *pPR;
+		int Protocol = 0 ;
+	} PortMonitorRecord, *pPR;
 
-   	std::vector<pPR> pPortStatsList;
+	std::vector<pPR> pPortStatsList;
+
+
+	std::vector<TIdIPMCastClient*> socketList ;
+
 
 
     //TIdIPMCastClient *Client[50];
