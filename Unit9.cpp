@@ -204,8 +204,11 @@ void __fastcall TForm9::Timer1Timer(TObject *Sender)
 {
 	for (int i = 1; i < SG_StreamList->RowCount; i++)
 	{
-		int  tsl = StrToInt(SG_StreamList->Cells[3][i]);
-		SG_StreamList->Cells[3][i] = IntToStr(tsl+1);
+		int  c = StrToInt(SG_StreamList->Cells[2][i]);
+		if (c!=0) {
+			int  tsl = StrToInt(SG_StreamList->Cells[3][i]);
+			SG_StreamList->Cells[3][i] = IntToStr(tsl+1);
+		}
 	}
 
 }

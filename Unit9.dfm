@@ -22,6 +22,8 @@ object Form9: TForm9
     Anchors = [akLeft, akTop, akRight, akBottom]
     ScrollBars = ssBoth
     TabOrder = 0
+    ExplicitWidth = 315
+    ExplicitHeight = 381
   end
   object BN_Listen: TButton
     Left = 423
@@ -88,6 +90,7 @@ object Form9: TForm9
     Height = 396
     Anchors = [akLeft, akTop, akBottom]
     TabOrder = 6
+    ExplicitHeight = 371
     ColWidths = (
       64
       120
