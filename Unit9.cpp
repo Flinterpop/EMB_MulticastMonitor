@@ -117,7 +117,7 @@ void __fastcall TForm9::BN_ListenClick(TObject *Sender)
 void __fastcall TForm9::BN_QuitClick(TObject *Sender)
 {
 	for (auto a : pPortStatsList) a->ClientSocket->Active=false;
-    //WriteIniFile();
+    WriteIniFile();
 	Close();
 }
 
@@ -128,16 +128,16 @@ void __fastcall TForm9::ReadIniFile()
 	{
 		TIniFile *ini = new TIniFile(iniFile);
 
-		int numPorts = ini->ReadInteger( "Form", "NumPorts", 0);
+		numPorts = ini->ReadInteger( "Form", "NumPorts", 0);
 
 		SG_StreamList->RowCount = numPorts+1;
-		pme("Ini file found with %d ports to monitor",numPorts);
+		pme("Ini file %s found with %d ports to monitor",iniFile, numPorts);
 
 		SG_StreamList->Cells[0][0]= L"Port";
 		SG_StreamList->Cells[1][0]= L"IP";
 		SG_StreamList->Cells[2][0]= L"Count Rx";
-		SG_StreamList->Cells[3][0]= L"TSL";
-		SG_StreamList->Cells[4][0]= L"Protocol";
+		SG_StreamList->Cells[3][0]= L"Time Since Last";
+		SG_StreamList->Cells[4][0]= L"Name";
 
 
 		for (int i=1;i<=numPorts;i++) {
@@ -145,9 +145,9 @@ void __fastcall TForm9::ReadIniFile()
 			sprintf(portnum,"Port%02d",i);
 			int port = ini->ReadInteger( "Form", portnum, 0);
 
-			char protocol[20];
-			sprintf(protocol,"Protocol%02d",i);
-			auto s = ini->ReadString( "Form", protocol, "--");
+			char name[20];
+			sprintf(name,"Name%02d",i);
+			auto s = ini->ReadString( "Form", name, "--");
 
 			char IP[20];
 			sprintf(IP,"IP%02d",i);
@@ -162,8 +162,8 @@ void __fastcall TForm9::ReadIniFile()
 
 		int width = ini->ReadInteger( "Form", "width", 780);
 		int height = ini->ReadInteger( "Form", "height", 400);
-		Form9->Width = std::clamp(width,440,1200);
-		Form9->Height = std::clamp(height,270,800);
+		Form9->Width = std::clamp(width,440,2000);
+		Form9->Height = std::clamp(height,270,1000);
 	}
 	else pme("No ini file. Using defaults");
 }
@@ -176,24 +176,30 @@ void __fastcall TForm9::WriteIniFile()
 
 	TIniFile *ini = new TIniFile(iniFile);
 
-	/*
-	int i;
-	for (i=0; i < TM_PortList->Lines->Count; i++)
-	{
-		String W = TM_PortList->Lines->Strings[i];
-
-		char portnum[10];
-		sprintf(portnum,"Port%02d",i+1);
-		ini->WriteString ( "Form", portnum, W);
-
-	}
-	ini->WriteString ( "Form", "NumPorts", i);
+	ini->WriteString ( "Form", "NumPorts", numPorts);
 
 	int width = Form9->Width;
 	int height = Form9->Height;
+    pme("Width/Height: %d %d",width,height);
 	ini->WriteString ( "Form", "Width", width);
 	ini->WriteString ( "Form", "Height", height);
-    */
+
+
+	for (int i=1;i<=numPorts;i++) {
+			char name[20];
+			sprintf(name,"Name%02d",i);
+			ini->WriteString( "Form", name, SG_StreamList->Cells[4][i]);
+
+			char portnum[10];
+			sprintf(portnum,"Port%02d",i);
+			auto pn = SG_StreamList->Cells[0][i];
+			ini->WriteInteger( "Form", portnum,StrToInt(pn));
+
+			char IP[20];
+			sprintf(IP,"IP%02d",i);
+			ini->WriteString( "Form", IP, SG_StreamList->Cells[1][i]);
+		}
+
 }
 
 

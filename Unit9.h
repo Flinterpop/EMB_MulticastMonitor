@@ -30,7 +30,6 @@ __published:	// IDE-managed Components
 	TGroupBox *GroupBox1;
 	TEdit *TE_MCastGroup;
 	TTimer *Timer1;
-	TButton *BN_AddPort;
 	TStringGrid *SG_StreamList;
 	void __fastcall IdIPMCastClient1IPMCastRead(TObject *Sender, const TIdBytes AData, TIdSocketHandle *ABinding);
 	void __fastcall BN_ListenClick(TObject *Sender);
@@ -50,6 +49,7 @@ public:		// User declarations
 	bool b_Listening=false;
 
 
+	int numPorts;
 	typedef struct _PortMonitorRecord
 	{
 		int port = 0;
