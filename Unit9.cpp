@@ -219,3 +219,13 @@ void __fastcall TForm9::Timer1Timer(TObject *Sender)
 
 }
 
+void __fastcall TForm9::BN_ClearClick(TObject *Sender)
+{
+	for (int i = 1; i < SG_StreamList->RowCount; i++)
+	{
+		SG_StreamList->Cells[2][i]= "0";	//count
+		SG_StreamList->Cells[3][i]= "0"; //			timeSinceLast=0;
+	}
+}
+//---------------------------------------------------------------------------
+

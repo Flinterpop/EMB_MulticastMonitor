@@ -27,14 +27,14 @@ __published:	// IDE-managed Components
 	TButton *BN_Listen;
 	TCheckBox *CB_Debug;
 	TButton *BN_Quit;
-	TGroupBox *GroupBox1;
-	TEdit *TE_MCastGroup;
 	TTimer *Timer1;
 	TStringGrid *SG_StreamList;
+	TButton *BN_Clear;
 	void __fastcall IdIPMCastClient1IPMCastRead(TObject *Sender, const TIdBytes AData, TIdSocketHandle *ABinding);
 	void __fastcall BN_ListenClick(TObject *Sender);
 	void __fastcall BN_QuitClick(TObject *Sender);
 	void __fastcall Timer1Timer(TObject *Sender);
+	void __fastcall BN_ClearClick(TObject *Sender);
 
 private:	// User declarations
 public:		// User declarations
